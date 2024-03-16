@@ -24,7 +24,7 @@ jobs:
         with:
           workload_identity_provider: projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider
           service_account: my-service-account@my-project.iam.gserviceaccount.com
-      - uses: userbradley/action-docker@v4.1.0
+      - uses: userbradley/action-docker@v0.0.1
         with:
           googleProject: project
           repository: repo
