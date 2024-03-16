@@ -2,6 +2,9 @@
 
 A GitHub action to build and push docker images
 
+> [!NOTE]
+> This is a highly specific docker action I use, so if you wish to use it, fork and adjust to suit your needs
+
 
 ## Quick Start
 
@@ -18,14 +21,21 @@ jobs:
       contents: read
     name: Docker Build
     steps:
-      - uses: actions/checkout@vv
+      - uses: actions/checkout@v4.1.1
       - name: Authenticate to Google
+        id: auth
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider
           service_account: my-service-account@my-project.iam.gserviceaccount.com
+      - name: Log docker in to Google Container Store
+        uses: docker/login-action@v3.1.0
+        with:
+          registry: europe-west2-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
       - name: Docker build
-        uses: userbradley/action-docker@v0.0.2
+        uses: userbradley/action-docker@v1.0.0
         with:
           googleProject: project
           repository: repo
