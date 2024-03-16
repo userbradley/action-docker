@@ -1,4 +1,4 @@
-name: Docker Build
+name: Google Artifact Registry Docker Build
 description: Docker build for Google artifact registry
 author: userbradley
 inputs:
@@ -14,6 +14,10 @@ inputs:
   directory:
     description: Location of the directory to build the docker image from
     required: true
+  dockerfile:
+    description: Name of the Docker file to build from
+    required: false
+    default: "Dockerfile"
 outputs:
   imageId:
     description: "Image ID"
