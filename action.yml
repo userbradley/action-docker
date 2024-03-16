@@ -1,0 +1,68 @@
+name: Docker Build
+description: Docker build for Google artifact registry
+author: userbradley
+inputs:
+  googleProject:
+    description: Name of the Google Cloud project that houses your Artifact Registry
+    required: true
+  repository:
+    description: Name of the repository in Artifact Registry
+    required: true
+  image:
+    description: Name of the Image to build
+    required: true
+  directory:
+    description: Location of the directory to build the docker image from
+    required: true
+outputs:
+  imageId:
+    description: "Image ID"
+    value: ${{ steps.sha.outputs.image }}
+runs:
+  using: composite
+  steps:
+    - name: Generate Tag data
+      id: tag
+      shell: bash
+      run: |
+        echo ref=$(echo ${GITHUB_REF_NAME} | cut -f2 -d'/') >> $GITHUB_OUTPUT
+        echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+    - name: Generate image SHA
+      id: sha
+      shell: sh
+      run: echo "image=europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}:${{steps.tag.outputs.sha}}" >> $GITHUB_OUTPUT
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Anything but Main
+      uses: docker/build-push-action@v5
+      if: ${{ github.ref != 'refs/heads/main' }}
+      with:
+        push: true
+        context: ${{ inputs.directory }}
+        file: ${{ inputs.directory }}/${{ inputs.dockerfile }}
+        tags: |
+          europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}:${{steps.tag.outputs.sha}}
+          europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}:${{steps.tag.outputs.ref}}
+          europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}:${{steps.tag.outputs.ref}}-${{steps.tag.outputs.sha}}
+          europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}:dev
+          europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    - name: Main image
+      uses: docker/build-push-action@v5
+      if: github.ref == 'refs/heads/main'
+      with:
+        push: true
+        context: ${{ inputs.directory }}
+        file: ${{ inputs.directory }}/${{ inputs.dockerfile }}
+        tags: |
+          europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}:${{steps.tag.outputs.sha}}
+          europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}:${{steps.tag.outputs.ref}}
+          europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}:${{steps.tag.outputs.ref}}-${{steps.tag.outputs.sha}}
+          europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}:prd
+          europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    - name: Image ID
+      shell: sh
+      run: echo ${{steps.sha.outputs.image }}
