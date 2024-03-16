@@ -1,6 +1,6 @@
 name: Docker Build
-description: Pets at Home Docker Build
-author: "userbradley"
+description: Docker build for Google artifact registry
+author: userbradley
 inputs:
   googleProject:
     description: Name of the Google Cloud project that houses your Artifact Registry
