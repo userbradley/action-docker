@@ -36,7 +36,7 @@ runs:
       shell: sh
       run: echo "image=europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}:${{steps.tag.outputs.sha}}" >> $GITHUB_OUTPUT
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
     - name: Anything but Main
       uses: docker/build-push-action@v5
       if: ${{ github.ref != 'refs/heads/main' }}
